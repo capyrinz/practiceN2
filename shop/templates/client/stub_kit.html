@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% load shop_extras %}
+{% block title %}Стикер-студия — кофейня «Зерно»{% endblock %}
+{% block content %}
+<div class="page-shell">
+  <div class="container">
+    <div class="page-head">
+      <div>
+        <span class="eyebrow">Бесплатно</span>
+        <h1>Стикер-студия</h1>
+        <p>Перетащите стикеры на стакан, поверните и увеличьте. Дизайн сохранится в заказе.</p>
+      </div>
+      <div class="d-flex gap-2 flex-wrap">
+        <a class="btn btn-soft" href="{% url 'menu' %}">В меню</a>
+        <a class="btn btn-brand" href="{% url 'cart' %}">В корзину{% if cart_count %} · {{ cart_count }}{% endif %}</a>
+      </div>
+    </div>
+
+    <form class="d-none" aria-hidden="true">{% csrf_token %}</form>
+
+    <div class="studio-layout">
+      <div class="panel">
+        <div class="panel-head"><h2>Стикеры</h2><span class="help-text">Перетащите</span></div>
+        <div class="panel-body">
+          <div class="sticker-palette" id="stickerPalette">
+            {% for sticker in stickers %}
+              <button class="sticker-btn" type="button"
+                      draggable="true"
+                      data-sticker="{{ sticker.pk }}"
+                      data-symbol="{{ sticker.symbol }}"
+                      title="{{ sticker.name }} — перетащите на стакан">
+                {{ sticker.symbol }}
+              </button>
+            {% empty %}
+              <p class="help-text">Стикеры ещё не добавлены администратором.</p>
+            {% endfor %}
+          </div>
+          <p class="studio-hint">Клик по стикеру тоже добавляет его в центр стакана.</p>
+        </div>
+      </div>
+
+      <div>
+        <div class="studio-canvas-wrap">
+          <div class="cup-design studio-canvas" id="stubCanvas"
+               data-save-url="{% url 'stub_kit_save' %}"
+               data-clear-url="{% url 'stub_kit_clear' %}"
+               data-checkout-url="{% url 'checkout' %}">
+            <div class="cup-lid"></div>
+            <div class="cup-body">
+              <div class="cup-band">ЗЕРНО</div>
+              {% for item in design %}
+                <span class="cup-placed" data-sticker="{{ item.sticker }}" data-x="{{ item.x }}" data-y="{{ item.y }}"
+                      data-scale="{{ item.scale }}" data-rotation="{{ item.rotation }}"
+                      style="left: {{ item.x }}%; top: {{ item.y }}%; font-size: {{ item.scale|mul:24 }}px; transform: translate(-50%, -50%) rotate({{ item.rotation }}deg);">
+                  {{ item.object.symbol }}
+                </span>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+        <p class="studio-hint">Перетаскивайте стикеры внутри стакана, чтобы разместить их точно.</p>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><h2>Управление</h2></div>
+        <div class="panel-body">
+          <div class="studio-tools">
+            <button class="btn btn-brand" type="button" id="saveDesign">💾 Сохранить дизайн</button>
+            <button class="btn btn-soft" type="button" id="designToCart">🛒 Перейти к оформлению</button>
+            <div class="divider"></div>
+            <button class="btn btn-outline-coffee" type="button" data-action="bigger">➕ Увеличить</button>
+            <button class="btn btn-outline-coffee" type="button" data-action="smaller">➖ Уменьшить</button>
+            <button class="btn btn-outline-coffee" type="button" data-action="rotate">🔄 Повернуть</button>
+            <button class="btn btn-outline-coffee" type="button" data-action="remove">🗑 Удалить стикер</button>
+            <button class="btn btn-outline-coffee" type="button" id="clearDesign">Очистить всё</button>
+          </div>
+          <div class="divider"></div>
+          <div class="d-flex justify-content-between align-items-center">
+            <span class="help-text">На стакане</span>
+            <span class="badge-soft" id="stickersCount">{{ design|length }} / 12</span>
+          </div>
+          <p class="help-text mt-3 mb-0" id="designStatus">Выберите стикер, чтобы изменить его размер и поворот.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ stickers_json|json_script:"stickersData" }}
+<script>
+  window.STICKERS = JSON.parse(document.getElementById("stickersData").textContent);
+</script>
+{% endblock %}

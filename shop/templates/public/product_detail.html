@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% load shop_extras %}
+{% block title %}{{ product.name }} — кофейня «Зерно»{% endblock %}
+{% block content %}
+<div class="page-shell">
+  <div class="container">
+    <div class="breadcrumbs">
+      <a href="{% url 'home' %}">Главная</a><span class="sep">/</span>
+      <a href="{% url 'menu' %}">Меню</a><span class="sep">/</span>
+      <a href="{% url 'menu' %}?category={{ product.category.slug }}">{{ product.category.name }}</a><span class="sep">/</span>
+      <span>{{ product.name }}</span>
+    </div>
+
+    <div class="product-layout">
+      <div class="product-hero">
+        {% if product.image %}
+          <img src="{{ product.image.url }}" alt="{{ product.name }}">
+        {% else %}
+          {{ product.category.icon }}
+        {% endif %}
+      </div>
+      <div class="product-info">
+        <span class="product-cat">{{ product.category.name }}</span>
+        <h1>{{ product.name }}</h1>
+        <p class="text-muted" style="line-height:1.7;">{{ product.description|default:"Готовим на заказ из свежих ингредиентов." }}</p>
+
+        {% if product.composition %}
+          <div class="product-composition"><strong>Состав:</strong> {{ product.composition }}</div>
+        {% endif %}
+
+        <div class="product-price-row">
+          <span class="price">{{ product.price|rub }}</span>
+          {% if product.volume %}<span class="volume-tag">{{ product.volume }}</span>{% endif %}
+        </div>
+
+        <form class="buy-row" method="post" action="{% url 'cart_add' product.pk %}">
+          {% csrf_token %}
+          <input type="hidden" name="next" value="{{ request.path }}">
+          <input class="form-control qty-input" type="number" name="quantity" value="1" min="1" max="20" aria-label="Количество">
+          <button class="btn btn-brand btn-lg" type="submit">Добавить в корзину</button>
+          <a class="btn btn-soft btn-lg" href="{% url 'cart' %}">Перейти в корзину</a>
+        </form>
+        <p class="help-text mt-3">Самовывоз: Москва, ул. Кофейная, 7 · готовим 10–15 минут.</p>
+      </div>
+    </div>
+
+    {% if related %}
+      <div class="section" style="padding-bottom: 0;">
+        <div class="section-head"><div><span class="eyebrow">С этим берут</span><h2 class="section-title" style="font-size:26px;">Ещё из категории «{{ product.category.name }}»</h2></div></div>
+        <div class="product-grid">
+          {% for product in related %}
+            {% include "partials/product_card.html" %}
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,83 @@
+{% extends "staff/base_staff.html" %}
+{% load shop_extras %}
+{% block title %}Заказы — панель «Зерно»{% endblock %}
+{% block staff_head %}
+<div>
+  <span class="eyebrow">Заказы</span>
+  <h1>Все заказы</h1>
+  <p>Найдено: {{ page.paginator.count }} из {{ total_count }}.</p>
+</div>
+<a class="btn btn-soft" href="{% url 'staff_stats' %}">Аналитика →</a>
+{% endblock %}
+{% block staff_content %}
+<div class="chips mb-4">
+  <a class="chip {% if not status_filter %}active{% endif %}" href="{% url 'staff_orders' %}">Все <span class="count">{{ total_count }}</span></a>
+  {% for value, label in statuses %}
+    <a class="chip {% if status_filter == value %}active{% endif %}" href="{% url 'staff_orders' %}?status={{ value }}">{{ label }} <span class="count">{{ counts|dict_get:value|default:0 }}</span></a>
+  {% endfor %}
+</div>
+
+<div class="panel mb-4">
+  <div class="panel-body tight">
+    <form class="row g-2 align-items-end" method="get">
+      <div class="col-lg-4 col-md-6">
+        <label class="form-label" for="q">Поиск</label>
+        <input class="form-control" id="q" type="search" name="q" value="{{ query }}" placeholder="Номер, клиент, комментарий">
+      </div>
+      <div class="col-lg-2 col-md-3">
+        <label class="form-label" for="status">Статус</label>
+        <select class="form-select" id="status" name="status">
+          <option value="">Все</option>
+          {% for value, label in statuses %}<option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="col-lg-2 col-md-3">
+        <label class="form-label" for="from">С даты</label>
+        <input class="form-control" id="from" type="date" name="from" value="{{ date_from }}">
+      </div>
+      <div class="col-lg-2 col-md-3">
+        <label class="form-label" for="to">По дату</label>
+        <input class="form-control" id="to" type="date" name="to" value="{{ date_to }}">
+      </div>
+      <div class="col-lg-2 col-md-3 d-flex gap-2">
+        <button class="btn btn-brand flex-fill" type="submit">Фильтр</button>
+        <a class="btn btn-outline-coffee" href="{% url 'staff_orders' %}">Сброс</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="panel">
+  <div class="table-scroll">
+    <table class="table-modern">
+      <thead><tr><th>Заказ</th><th>Клиент</th><th>Состав</th><th>Стикеры</th><th>Сумма</th><th>Статус</th><th>Время</th><th></th></tr></thead>
+      <tbody>
+        {% for order in orders %}
+          <tr>
+            <td class="cell-strong">{{ order.number }}</td>
+            <td>{{ order.client.full_name }}<div class="cell-muted">{{ order.client.phone|default:order.client.email|default:"—" }}</div></td>
+            <td class="cell-muted">{{ order.items_count }} поз.</td>
+            <td>{% if order.stickers.all %}🎨 {{ order.stickers.all|length }}{% else %}<span class="cell-muted">—</span>{% endif %}</td>
+            <td class="cell-strong">{{ order.total|rub }}</td>
+            <td><span class="status-pill {{ order.status_class }}">{{ order.get_status_display }}</span></td>
+            <td class="cell-muted">{{ order.created_at|date:"d.m.Y H:i" }}</td>
+            <td><a class="btn btn-sm btn-soft" href="{% url 'staff_order_detail' order.pk %}">Открыть</a></td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="8"><div class="empty-state"><div class="icon">🧾</div><h3>Заказов не найдено</h3><p>Измените фильтры или сбросьте поиск.</p></div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% if page.paginator.num_pages > 1 %}
+  <nav class="mt-4" aria-label="Страницы">
+    <ul class="pagination justify-content-center">
+      {% if page.has_previous %}<li class="page-item"><a class="page-link" href="?page={{ page.previous_page_number }}&status={{ status_filter }}&q={{ query }}&from={{ date_from }}&to={{ date_to }}">← Назад</a></li>{% endif %}
+      <li class="page-item disabled"><span class="page-link">Стр. {{ page.number }} из {{ page.paginator.num_pages }}</span></li>
+      {% if page.has_next %}<li class="page-item"><a class="page-link" href="?page={{ page.next_page_number }}&status={{ status_filter }}&q={{ query }}&from={{ date_from }}&to={{ date_to }}">Вперёд →</a></li>{% endif %}
+    </ul>
+  </nav>
+{% endif %}
+{% endblock %}

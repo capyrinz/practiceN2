@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+{% load shop_extras %}
+{% block title %}Зерно — кофейня и обжарка в Москве{% endblock %}
+{% block content %}
+<section class="hero">
+  <div class="container hero-grid">
+    <div>
+      <span class="eyebrow">Свежая обжарка каждый день</span>
+      <h1>Кофе, который<br>хочется пить <em>медленно</em></h1>
+      <p class="hero-lead">
+        Обжариваем зерно небольшими партиями, готовим авторские напитки и собираем стакан
+        под ваше настроение. Заказ — за пару минут, самовывоз без очереди.
+      </p>
+      <div class="hero-actions">
+        <a class="btn btn-brand btn-lg" href="{% url 'menu' %}">Смотреть меню</a>
+        <a class="btn btn-soft btn-lg" href="{% url 'stub_kit' %}">Собрать стакан 🎨</a>
+      </div>
+      <div class="hero-facts">
+        <div class="hero-fact"><strong>8 лет</strong><span>обжариваем зерно</span></div>
+        <div class="hero-fact"><strong>{{ products_total }}</strong><span>позиций в меню</span></div>
+        <div class="hero-fact"><strong>15 мин</strong><span>среднее время заказа</span></div>
+      </div>
+    </div>
+    <div class="cup-stage">
+      <div class="cup-tag one"><span class="dot"></span> Свежая обжарка</div>
+      <div class="cup-hero">
+        <div class="steam"><span></span><span></span><span></span></div>
+        <div class="lid"></div>
+        <div class="body"><div class="sleeve">ЗЕРНО</div></div>
+      </div>
+      <div class="cup-tag two">🎨 Стикеры в подарок</div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="menu">
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow">Категории</span>
+        <h2 class="section-title">Выберите, что хочется</h2>
+      </div>
+      <a class="btn btn-outline-coffee" href="{% url 'menu' %}">Всё меню →</a>
+    </div>
+    <div class="category-row">
+      {% for category in categories %}
+        <a class="category-card" href="{% url 'menu' %}?category={{ category.slug }}">
+          <span class="category-icon">{{ category.icon }}</span>
+          <strong>{{ category.name }}</strong>
+          <span>{{ category.description|default:"Смотреть позиции" }}</span>
+        </a>
+      {% empty %}
+        <p class="text-muted">Категории скоро появятся.</p>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="section" style="padding-top: 0;">
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow">Выбор бариста</span>
+        <h2 class="section-title">Популярное сегодня</h2>
+        <p class="section-sub">Проверенные сочетания, которые заказывают чаще всего.</p>
+      </div>
+    </div>
+    <div class="product-grid">
+      {% for product in products %}
+        {% include "partials/product_card.html" %}
+      {% empty %}
+        <div class="empty-state"><div class="icon">☕</div><h3>Меню пока пустое</h3><p>Загляните позже — мы уже обжариваем зерно.</p></div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="section" id="sticker">
+  <div class="container">
+    <div class="band">
+      <div>
+        <span class="eyebrow">Фишка кофейни</span>
+        <h2>Соберите свой стакан в стикер-студии</h2>
+        <p>
+          Перетащите стикеры на макет стакана, поверните и увеличьте — мы распечатаем
+          дизайн и наклеим на ваш напиток. Это бесплатно и занимает минуту.
+        </p>
+        <a class="btn btn-caramel btn-lg" href="{% url 'stub_kit' %}">Открыть студию</a>
+      </div>
+      <div class="band-cup">
+        <div class="cup-design" style="transform: scale(1.25);">
+          <div class="cup-lid"></div>
+          <div class="cup-body">
+            <div class="cup-band">ЗЕРНО</div>
+            <span class="cup-placed" style="left: 32%; top: 30%; font-size: 26px; transform: translate(-50%,-50%) rotate(-12deg);">🌿</span>
+            <span class="cup-placed" style="left: 68%; top: 62%; font-size: 30px; transform: translate(-50%,-50%) rotate(9deg);">😊</span>
+            <span class="cup-placed" style="left: 44%; top: 80%; font-size: 20px; transform: translate(-50%,-50%) rotate(4deg);">⭐</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="padding-top: 0;">
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow">Журнал</span>
+        <h2 class="section-title">Блог о кофе</h2>
+        <p class="section-sub">Как выбрать зерно, заварить дома и не испортить вкус.</p>
+      </div>
+      <a class="btn btn-outline-coffee" href="{% url 'blog' %}">Все статьи →</a>
+    </div>
+    <div class="blog-grid">
+      {% for post in posts %}
+        <article class="blog-card">
+          <a class="blog-cover" href="{% url 'blog_detail' post.slug %}">
+            {% if post.cover_image %}<img src="{{ post.cover_image.url }}" alt="{{ post.title }}">{% else %}📖{% endif %}
+          </a>
+          <div class="blog-body">
+            <span class="blog-meta">{{ post.published_at|date:"d.m.Y" }} · {{ post.reading_minutes }} мин</span>
+            <h3><a href="{% url 'blog_detail' post.slug %}">{{ post.title }}</a></h3>
+            <p>{{ post.excerpt }}</p>
+            <a class="blog-more" href="{% url 'blog_detail' post.slug %}">Читать →</a>
+          </div>
+        </article>
+      {% empty %}
+        <p class="text-muted">Статьи скоро появятся.</p>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="section" id="about" style="padding-top: 0;">
+  <div class="container">
+    <div class="panel">
+      <div class="panel-body" style="padding: 34px;">
+        <div class="row g-4 align-items-center">
+          <div class="col-lg-7">
+            <span class="eyebrow">О кофейне</span>
+            <h2 class="section-title" style="font-size: 28px;">Небольшая обжарка с большим вниманием к деталям</h2>
+            <p class="text-muted mb-3" style="line-height: 1.7;">
+              «Зерно» — это кофейня и обжарочный цех на 12 посадочных мест. Мы работаем
+              с фермерскими лотами, обжариваем по 5 кг и подаём напиток в течение
+              нескольких дней после обжарки — так вкус остаётся ярким.
+            </p>
+            <div class="d-flex gap-2 flex-wrap">
+              <a class="btn btn-brand" href="{% url 'menu' %}">Попробовать меню</a>
+              <a class="btn btn-soft" href="{% url 'register' %}">Создать аккаунт</a>
+            </div>
+          </div>
+          <div class="col-lg-5">
+            <div class="row g-2">
+              <div class="col-6"><div class="panel" style="padding:18px;"><div class="kpi-value" style="font-size:20px;">5 кг</div><div class="kpi-hint">партия обжарки</div></div></div>
+              <div class="col-6"><div class="panel" style="padding:18px;"><div class="kpi-value" style="font-size:20px;">12</div><div class="kpi-hint">посадочных мест</div></div></div>
+              <div class="col-6"><div class="panel" style="padding:18px;"><div class="kpi-value" style="font-size:20px;">3</div><div class="kpi-hint">способа заваривания</div></div></div>
+              <div class="col-6"><div class="panel" style="padding:18px;"><div class="kpi-value" style="font-size:20px;">100%</div><div class="kpi-hint">арабика</div></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

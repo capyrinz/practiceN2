@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Блог — кофейня «Зерно»{% endblock %}
+{% block content %}
+<div class="page-shell">
+  <div class="container">
+    <div class="page-head">
+      <div>
+        <span class="eyebrow">Журнал</span>
+        <h1>Блог о кофе</h1>
+        <p>Обжарка, рецепты и небольшие истории из кофейни.</p>
+      </div>
+    </div>
+    <div class="blog-grid">
+      {% for post in posts %}
+        <article class="blog-card">
+          <a class="blog-cover" href="{% url 'blog_detail' post.slug %}">
+            {% if post.cover_image %}<img src="{{ post.cover_image.url }}" alt="{{ post.title }}">{% else %}📖{% endif %}
+          </a>
+          <div class="blog-body">
+            <span class="blog-meta">{{ post.published_at|date:"d.m.Y" }} · {{ post.reading_minutes }} мин чтения</span>
+            <h3><a href="{% url 'blog_detail' post.slug %}">{{ post.title }}</a></h3>
+            <p>{{ post.excerpt }}</p>
+            <a class="blog-more" href="{% url 'blog_detail' post.slug %}">Читать →</a>
+          </div>
+        </article>
+      {% empty %}
+        <div class="empty-state" style="grid-column: 1 / -1;"><div class="icon">📖</div><h3>Статей пока нет</h3><p>Скоро расскажем, как выбрать зерно.</p></div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

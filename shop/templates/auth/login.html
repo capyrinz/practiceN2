@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Вход — кофейня «Зерно»{% endblock %}
+{% block content %}
+<div class="auth-wrap">
+  <div class="auth-shell">
+    <aside class="auth-side">
+      <div>
+        <div class="brand" style="color:#f8efe4"><span class="brand-mark">☕</span><span>ЗЕРНО<small style="color:#c9a882">кофейня · обжарка</small></span></div>
+        <h2>С возвращением!</h2>
+        <p>Войдите, чтобы повторить любимый заказ, следить за статусом и собрать новый дизайн стакана.</p>
+        <ul>
+          <li>История заказов и чеки</li>
+          <li>Статус приготовления онлайн</li>
+          <li>Стикер-студия в один клик</li>
+        </ul>
+      </div>
+      <p class="mb-0" style="font-size:12px;color:#a5927f">© Кофейня «Зерно»</p>
+    </aside>
+    <div class="auth-card">
+      <h1>Вход</h1>
+      <p class="lead">Логин и пароль, указанные при регистрации.</p>
+      {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+      <form method="post" novalidate>
+        {% csrf_token %}
+        {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+        <div class="form-group">
+          <label class="form-label" for="{{ form.username.id_for_label }}">{{ form.username.label }}</label>
+          {{ form.username }}{{ form.username.errors }}
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="{{ form.password.id_for_label }}">{{ form.password.label }}</label>
+          {{ form.password }}{{ form.password.errors }}
+        </div>
+        <button class="btn btn-brand w-100 py-2" type="submit">Войти</button>
+      </form>
+      <div class="auth-footer">Нет аккаунта? <a href="{% url 'register' %}">Зарегистрироваться</a></div>
+    </div>
+  </div>
+</div>
+{% endblock %}

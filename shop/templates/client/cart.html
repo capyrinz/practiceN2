@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% load shop_extras %}
+{% block title %}Корзина — кофейня «Зерно»{% endblock %}
+{% block content %}
+<div class="page-shell">
+  <div class="container">
+    <div class="page-head">
+      <div>
+        <span class="eyebrow">Заказ</span>
+        <h1>Корзина</h1>
+        <p>{% if count %}{{ count }} позиц. · {{ total|rub }}{% else %}Пока пусто — самое время выбрать кофе.{% endif %}</p>
+      </div>
+      <a class="btn btn-soft" href="{% url 'menu' %}">← Продолжить выбор</a>
+    </div>
+
+    {% if items %}
+      <div class="cart-layout">
+        <div class="panel">
+          <div class="panel-head"><h2>Состав заказа</h2><span class="help-text">Цены указаны за позицию</span></div>
+          <div class="panel-body">
+            {% for item in items %}
+              <div class="cart-row">
+                <div class="cart-thumb">
+                  {% if item.product.image %}<img src="{{ item.product.image.url }}" alt="{{ item.product.name }}">{% else %}{{ item.product.category.icon }}{% endif %}
+                </div>
+                <div>
+                  <div class="cart-name"><a href="{% url 'product_detail' item.product.slug %}">{{ item.product.name }}</a></div>
+                  <div class="cart-cat">{{ item.product.category.name }}{% if item.product.volume %} · {{ item.product.volume }}{% endif %} · {{ item.product.price|rub }}</div>
+                </div>
+                <form class="qty-form" method="post" action="{% url 'cart_update' item.product.pk %}">
+                  {% csrf_token %}
+                  <input class="form-control" type="number" name="quantity" value="{{ item.quantity }}" min="0" max="20" aria-label="Количество">
+                  <button class="btn btn-sm btn-soft" type="submit">OK</button>
+                </form>
+                <div class="cart-sum text-end">
+                  <div class="cell-strong">{{ item.total|rub }}</div>
+                  <form method="post" action="{% url 'cart_remove' item.product.pk %}">
+                    {% csrf_token %}
+                    <button class="btn btn-sm btn-outline-coffee mt-1" type="submit">Убрать</button>
+                  </form>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <aside>
+          <div class="panel mb-3">
+            <div class="panel-head"><h2>Итого</h2></div>
+            <div class="panel-body">
+              <div class="summary-line"><span>Позиций</span><span>{{ count }}</span></div>
+              <div class="summary-line"><span>Самовывоз</span><span>бесплатно</span></div>
+              <div class="summary-line total"><span>К оплате</span><span>{{ total|rub }}</span></div>
+              <a class="btn btn-brand w-100 mt-3" href="{% url 'checkout' %}">Оформить заказ</a>
+              <p class="help-text mt-2 mb-0">Оплата на кассе при получении.</p>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head"><h3>Дизайн стакана</h3><span class="badge-soft">{{ design|length }} стик.</span></div>
+            <div class="panel-body text-center">
+              {% include "partials/cup_design.html" %}
+              <a class="btn btn-soft btn-sm mt-3" href="{% url 'stub_kit' %}">{% if design %}Изменить дизайн{% else %}Открыть студию{% endif %}</a>
+            </div>
+          </div>
+        </aside>
+      </div>
+    {% else %}
+      <div class="panel">
+        <div class="empty-state">
+          <div class="icon">🛒</div>
+          <h3>Корзина пуста</h3>
+          <p>Добавьте напиток или десерт из меню — и мы начнём готовить.</p>
+          <a class="btn btn-brand" href="{% url 'menu' %}">Открыть меню</a>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

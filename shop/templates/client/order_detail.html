@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% load shop_extras %}
+{% block title %}Заказ {{ order.number }} — кофейня «Зерно»{% endblock %}
+{% block content %}
+<div class="page-shell">
+  <div class="container">
+    <div class="breadcrumbs">
+      {% if is_admin %}<a href="{% url 'staff_orders' %}">Заказы</a>{% else %}<a href="{% url 'my_orders' %}">Мои заказы</a>{% endif %}
+      <span class="sep">/</span><span>{{ order.number }}</span>
+    </div>
+    <div class="page-head">
+      <div>
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+          <h1>Заказ {{ order.number }}</h1>
+          <span class="status-pill {{ order.status_class }}">{{ order.get_status_display }}</span>
+        </div>
+        <p>Оформлен {{ order.created_at|date:"d.m.Y в H:i" }}{% if order.pickup_time %} · самовывоз {{ order.pickup_time|date:"d.m.Y H:i" }}{% endif %}</p>
+      </div>
+      <div class="d-flex gap-2 flex-wrap">
+        <a class="btn btn-soft" href="{% url 'receipt_pdf' order.pk %}">⬇ Чек PDF</a>
+        {% if is_admin %}<a class="btn btn-brand" href="{% url 'staff_order_detail' order.pk %}">Управление</a>{% endif %}
+        <a class="btn btn-outline-coffee" href="{% url 'menu' %}">В меню</a>
+      </div>
+    </div>
+
+    <div class="panel mb-4"><div class="panel-body">{% include "partials/order_stepper.html" %}</div></div>
+
+    <div class="detail-grid" style="display:grid; grid-template-columns: 1.5fr .9fr; gap:22px; align-items:start;">
+      <div>
+        <div class="panel mb-4">
+          <div class="panel-head"><h2>Состав заказа</h2><span class="help-text">{{ order.items_count }} поз.</span></div>
+          <div class="panel-body">
+            <table class="item-table">
+              {% for item in order.items.all %}
+                <tr>
+                  <td>{{ item.name }}{% if item.product and item.product.volume %}<div class="cell-muted">{{ item.product.volume }}</div>{% endif %}</td>
+                  <td class="qty">×{{ item.quantity }}</td>
+                  <td class="right">{{ item.total|rub }}</td>
+                </tr>
+              {% endfor %}
+              <tr><td colspan="2" class="cell-strong">Итого</td><td class="right cell-strong">{{ order.total|rub }}</td></tr>
+            </table>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><h2>Детали</h2></div>
+          <div class="panel-body">
+            <div class="info-grid">
+              <div class="info-item"><div class="label">Статус</div><div class="value">{{ order.get_status_display }}</div></div>
+              <div class="info-item"><div class="label">Оплата</div><div class="value">На кассе при получении</div></div>
+              <div class="info-item"><div class="label">Самовывоз</div><div class="value">{{ order.pickup_time|date:"d.m.Y H:i"|default:"Как можно скорее" }}</div></div>
+              <div class="info-item"><div class="label">Адрес</div><div class="value">Москва, ул. Кофейная, 7</div></div>
+              {% if order.comment %}
+                <div class="info-item full"><div class="label">Комментарий</div><div class="value" style="font-weight:500">{{ order.comment }}</div></div>
+              {% endif %}
+              {% if order.staff_comment %}
+                <div class="info-item full"><div class="label">Сообщение бариста</div><div class="value" style="font-weight:500">{{ order.staff_comment }}</div></div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <aside>
+        <div class="panel mb-3">
+          <div class="panel-head"><h3>Дизайн стакана</h3><span class="badge-soft">{{ order.stickers.all|length }} стик.</span></div>
+          <div class="panel-body text-center">
+            <div class="cup-design">
+              <div class="cup-lid"></div>
+              <div class="cup-body">
+                <div class="cup-band">ЗЕРНО</div>
+                {% for placed in order.stickers.all %}
+                  <span class="cup-placed" style="left: {{ placed.x }}%; top: {{ placed.y }}%; font-size: {{ placed.scale|mul:24 }}px; transform: translate(-50%, -50%) rotate({{ placed.rotation }}deg);">{{ placed.sticker.symbol }}</span>
+                {% empty %}
+                  <div class="design-empty">Без стикеров</div>
+                {% endfor %}
+              </div>
+            </div>
+            <a class="btn btn-soft btn-sm mt-3" href="{% url 'stub_kit' %}">Собрать новый дизайн</a>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-body">
+            <div class="fw-bold mb-1">☕ Как получить</div>
+            <p class="help-text mb-0">Приходите к назначенному времени, назовите номер заказа и покажите QR из PDF-чека. Без очереди.</p>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+</div>
+{% endblock %}

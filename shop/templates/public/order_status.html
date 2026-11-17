@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% load shop_extras %}
+{% block title %}Статус заказа {{ order.number }} — «Зерно»{% endblock %}
+{% block content %}
+<div class="public-wrap">
+  <div class="text-center mb-4">
+    <a class="brand" href="{% url 'home' %}"><span class="brand-mark">☕</span><span>ЗЕРНО<small>кофейня · обжарка</small></span></a>
+    <p class="help-text mt-3 mb-0">Статус заказа по QR-коду</p>
+  </div>
+
+  <div class="public-card">
+    <div class="public-head">
+      <div>
+        <div class="help-text">Заказ</div>
+        <h1>{{ order.number }}</h1>
+      </div>
+      <span class="status-pill {{ order.status_class }}" style="font-size:14px;padding:8px 14px">{{ order.get_status_display }}</span>
+    </div>
+
+    <div class="mb-4">{% include "partials/order_stepper.html" %}</div>
+
+    {% if order.staff_comment %}
+      <div class="alert alert-info mb-4">{{ order.staff_comment }}</div>
+    {% endif %}
+
+    <div class="info-grid mb-4">
+      <div class="info-item"><div class="label">Оформлен</div><div class="value">{{ order.created_at|date:"d.m.Y H:i" }}</div></div>
+      <div class="info-item"><div class="label">Самовывоз</div><div class="value">{{ order.pickup_time|date:"d.m.Y H:i"|default:"Как можно скорее" }}</div></div>
+      <div class="info-item"><div class="label">Позиций</div><div class="value">{{ order.items_count }}</div></div>
+      <div class="info-item"><div class="label">Сумма</div><div class="value">{{ order.total|rub }}</div></div>
+    </div>
+
+    <h2 style="font-size:16px;" class="mb-3">Состав заказа</h2>
+    <table class="item-table">
+      {% for item in order.items.all %}
+        <tr><td>{{ item.name }}</td><td class="qty">×{{ item.quantity }}</td><td class="right">{{ item.total|rub }}</td></tr>
+      {% endfor %}
+      <tr><td colspan="2" class="cell-strong">Итого</td><td class="right cell-strong">{{ order.total|rub }}</td></tr>
+    </table>
+
+    {% if order.stickers.all %}
+      <div class="divider"></div>
+      <div class="d-flex align-items-center gap-2 flex-wrap">
+        <span class="help-text">Дизайн стакана:</span>
+        {% for placed in order.stickers.all %}
+          <span class="badge-soft" style="font-size:16px" title="{{ placed.sticker.name }}">{{ placed.sticker.symbol }}</span>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </div>
+
+  <p class="public-note">
+    Страница показывает только статус и состав заказа. Личные данные и чеки доступны
+    в <a href="{% url 'login' %}">личном кабинете</a>.
+  </p>
+</div>
+{% endblock %}

@@ -1,0 +1,210 @@
+{% extends "staff/base_staff.html" %}
+{% load static shop_extras %}
+{% block title %}Статистика — панель «Зерно»{% endblock %}
+{% block staff_head %}
+<div>
+  <span class="eyebrow">Аналитика</span>
+  <h1>Статистика продаж</h1>
+  <p>Проданные заказы (все, кроме отменённых) · данные обновляются на лету.</p>
+</div>
+<div class="d-flex gap-2 flex-wrap">
+  <a class="btn btn-soft" href="{% url 'staff_orders' %}">К заказам</a>
+  <a class="btn btn-brand" href="{% url 'staff_orders' %}?status=completed">Выданные</a>
+</div>
+{% endblock %}
+{% block staff_content %}
+<div class="kpi-grid">
+  <div class="kpi-card green">
+    <div class="kpi-icon">💰</div>
+    <div class="kpi-label">Выручка всего</div>
+    <div class="kpi-value" style="font-size:22px">{{ total_revenue|rub0 }}</div>
+    <div class="kpi-hint">за 30 дней: {{ month_revenue|rub0 }}</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-icon">🧾</div>
+    <div class="kpi-label">Заказов</div>
+    <div class="kpi-value">{{ total_orders }}</div>
+    <div class="kpi-hint">выдано: {{ completed_count }}</div>
+  </div>
+  <div class="kpi-card blue">
+    <div class="kpi-icon">📊</div>
+    <div class="kpi-label">Средний чек</div>
+    <div class="kpi-value" style="font-size:22px">{{ avg_check|rub0 }}</div>
+    <div class="kpi-hint">клиентов: {{ clients_count }}</div>
+  </div>
+  <div class="kpi-card amber">
+    <div class="kpi-icon">↩</div>
+    <div class="kpi-label">Отмены</div>
+    <div class="kpi-value">{{ cancel_rate }}%</div>
+    <div class="kpi-hint">{% if best_day %}лучший день: {{ best_day.0 }} · {{ best_day.1|rub0 }}{% else %}нет данных{% endif %}</div>
+  </div>
+</div>
+
+<div class="chart-grid">
+  <div class="chart-card">
+    <h3>Выручка за 14 дней</h3>
+    <div class="chart-sub">Сумма неотменённых заказов по дням, ₽</div>
+    <div class="chart-box"><canvas id="revenueChart" aria-label="График выручки" role="img"></canvas></div>
+  </div>
+  <div class="chart-card">
+    <h3>Заказы по дням</h3>
+    <div class="chart-sub">Количество оформленных заказов</div>
+    <div class="chart-box"><canvas id="ordersChart" aria-label="График количества заказов" role="img"></canvas></div>
+  </div>
+</div>
+
+<div class="chart-grid">
+  <div class="chart-card">
+    <h3>Топ позиций</h3>
+    <div class="chart-sub">По количеству проданных единиц</div>
+    {% for row in top_products %}
+      <div class="top-row">
+        <div class="top-rank">{{ forloop.counter }}</div>
+        <div class="top-name">{{ row.name }}</div>
+        <div class="top-qty">{{ row.qty }} шт. · {{ row.revenue|rub0 }}</div>
+      </div>
+    {% empty %}
+      <p class="help-text mb-0">Пока нет проданных позиций.</p>
+    {% endfor %}
+  </div>
+  <div class="chart-card">
+    <h3>Доли категорий</h3>
+    <div class="chart-sub">По количеству проданных единиц</div>
+    <div class="chart-box short"><canvas id="categoryChart" aria-label="Диаграмма категорий" role="img"></canvas></div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-6">
+    <div class="chart-card h-100">
+      <h3>Статусы заказов</h3>
+      <div class="chart-sub">Текущее распределение всех заказов</div>
+      <div class="chart-box short"><canvas id="statusChart" aria-label="Диаграмма статусов" role="img"></canvas></div>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="panel h-100">
+      <div class="panel-head"><h3>Таблица статусов</h3></div>
+      <div class="table-scroll">
+        <table class="table-modern">
+          <thead><tr><th>Статус</th><th>Заказов</th><th>Доля</th></tr></thead>
+          <tbody>
+            {% for row in status_rows %}
+              <tr>
+                <td><span class="status-pill status-{{ row.status }}">{{ row.label }}</span></td>
+                <td class="cell-strong">{{ row.count }}</td>
+                <td class="cell-muted">{% if total_orders %}{% widthratio row.count total_orders 100 %}%{% else %}—{% endif %}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+{{ labels|json_script:"chartLabels" }}
+{{ revenue|json_script:"chartRevenue" }}
+{{ orders_count|json_script:"chartOrders" }}
+{{ category_labels|json_script:"chartCategoryLabels" }}
+{{ category_values|json_script:"chartCategoryValues" }}
+{{ status_rows|json_script:"chartStatusRows" }}
+{% endblock %}
+{% block scripts %}
+<script src="{% static 'vendor/chart.umd.min.js' %}"></script>
+<script>
+  (function () {
+    const read = (id) => JSON.parse(document.getElementById(id).textContent);
+    const labels = read("chartLabels");
+    const revenue = read("chartRevenue");
+    const orders = read("chartOrders");
+    const categoryLabels = read("chartCategoryLabels");
+    const categoryValues = read("chartCategoryValues");
+    const statusRows = read("chartStatusRows");
+
+    if (!window.Chart) return;
+
+    const caramel = "#b07d56";
+    const espresso = "#2b1c14";
+    const palette = ["#b07d56", "#3f6b4f", "#2f5d8a", "#a8641f", "#a33a2b", "#7a5c49", "#c9a882"];
+    const grid = { color: "rgba(43,28,20,.07)" };
+    const money = (value) => Number(value).toLocaleString("ru-RU") + " ₽";
+
+    new Chart(document.getElementById("revenueChart"), {
+      type: "line",
+      data: {
+        labels: labels,
+        datasets: [{
+          data: revenue,
+          borderColor: caramel,
+          backgroundColor: "rgba(176,125,86,.14)",
+          fill: true,
+          tension: .35,
+          pointRadius: 3,
+          pointBackgroundColor: caramel,
+        }],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: (ctx) => money(ctx.parsed.y) } } },
+        scales: {
+          x: { grid: { display: false }, ticks: { color: "#7a5c49", font: { size: 10 } } },
+          y: { beginAtZero: true, grid: grid, ticks: { color: "#7a5c49", font: { size: 10 }, callback: (v) => v.toLocaleString("ru-RU") } },
+        },
+      },
+    });
+
+    new Chart(document.getElementById("ordersChart"), {
+      type: "bar",
+      data: {
+        labels: labels,
+        datasets: [{ data: orders, backgroundColor: espresso, borderRadius: 6, maxBarThickness: 22 }],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: (ctx) => ctx.parsed.y + " заказ(ов)" } } },
+        scales: {
+          x: { grid: { display: false }, ticks: { color: "#7a5c49", font: { size: 10 } } },
+          y: { beginAtZero: true, grid: grid, ticks: { precision: 0, color: "#7a5c49", font: { size: 10 } } },
+        },
+      },
+    });
+
+    if (categoryLabels.length) {
+      new Chart(document.getElementById("categoryChart"), {
+        type: "doughnut",
+        data: {
+          labels: categoryLabels,
+          datasets: [{ data: categoryValues, backgroundColor: palette, borderWidth: 0, hoverOffset: 6 }],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: "58%",
+          plugins: { legend: { position: "bottom", labels: { boxWidth: 10, color: "#4a3327", font: { size: 11 } } } },
+        },
+      });
+    }
+
+    new Chart(document.getElementById("statusChart"), {
+      type: "bar",
+      data: {
+        labels: statusRows.map((row) => row.label),
+        datasets: [{ data: statusRows.map((row) => row.count), backgroundColor: palette, borderRadius: 6, maxBarThickness: 34 }],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        indexAxis: "y",
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { beginAtZero: true, grid: grid, ticks: { precision: 0, color: "#7a5c49", font: { size: 10 } } },
+          y: { grid: { display: false }, ticks: { color: "#4a3327", font: { size: 11 } } },
+        },
+      },
+    });
+  })();
+</script>
+{% endblock %}

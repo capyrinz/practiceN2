@@ -1,0 +1,82 @@
+{% extends "staff/base_staff.html" %}
+{% block title %}{% if product %}Редактирование товара{% else %}Новый товар{% endif %} — панель{% endblock %}
+{% block staff_head %}
+<div>
+  <span class="eyebrow">Каталог</span>
+  <h1>{% if product %}Редактирование товара{% else %}Новый товар{% endif %}</h1>
+  <p>{% if product %}{{ product.name }}{% else %}Заполните карточку — она сразу появится в меню.{% endif %}</p>
+</div>
+{% endblock %}
+{% block staff_content %}
+<form class="form-card" method="post" enctype="multipart/form-data" novalidate style="max-width:780px">
+  {% csrf_token %}
+  {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+  <div class="row g-3">
+    <div class="col-md-8">
+      <div class="form-group">
+        <label class="form-label" for="{{ form.name.id_for_label }}">Название *</label>
+        {{ form.name }}{{ form.name.errors }}
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="form-group">
+        <label class="form-label" for="{{ form.category.id_for_label }}">Категория *</label>
+        {{ form.category }}{{ form.category.errors }}
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="form-group">
+        <label class="form-label" for="{{ form.price.id_for_label }}">Цена, ₽ *</label>
+        {{ form.price }}{{ form.price.errors }}
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="form-group">
+        <label class="form-label" for="{{ form.volume.id_for_label }}">Объём / вес</label>
+        {{ form.volume }}{{ form.volume.errors }}
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="form-group">
+        <label class="form-label" for="{{ form.slug.id_for_label }}">URL-имя</label>
+        {{ form.slug }}<div class="form-text">{{ form.slug.help_text|default:"Можно оставить пустым" }}</div>{{ form.slug.errors }}
+      </div>
+    </div>
+    <div class="col-12">
+      <div class="form-group">
+        <label class="form-label" for="{{ form.description.id_for_label }}">Описание</label>
+        {{ form.description }}{{ form.description.errors }}
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="form-group">
+        <label class="form-label" for="{{ form.composition.id_for_label }}">Состав</label>
+        {{ form.composition }}{{ form.composition.errors }}
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="form-group">
+        <label class="form-label" for="{{ form.image.id_for_label }}">Фото</label>
+        {{ form.image }}<div class="form-text">JPG/PNG, до 10 МБ. Без фото покажем иконку категории.</div>{{ form.image.errors }}
+        {% if product.image %}<div class="form-text">Текущее фото: {{ product.image.name }}</div>{% endif %}
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="form-check">
+        {{ form.is_active }}
+        <label class="form-check-label" for="{{ form.is_active.id_for_label }}">В продаже</label>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="form-check">
+        {{ form.is_featured }}
+        <label class="form-check-label" for="{{ form.is_featured.id_for_label }}">Показывать на главной</label>
+      </div>
+    </div>
+  </div>
+  <div class="form-actions">
+    <button class="btn btn-brand" type="submit">Сохранить</button>
+    <a class="btn btn-outline-coffee" href="{% url 'staff_products' %}">Отмена</a>
+  </div>
+</form>
+{% endblock %}

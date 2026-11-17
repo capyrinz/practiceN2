@@ -1,0 +1,104 @@
+{% extends "staff/base_staff.html" %}
+{% load shop_extras %}
+{% block title %}Панель управления — «Зерно»{% endblock %}
+{% block staff_head %}
+<div>
+  <span class="eyebrow">Панель</span>
+  <h1>Обзор кофейни</h1>
+  <p>Сводка на {% now "d.m.Y" %} · обновляется автоматически.</p>
+</div>
+<div class="d-flex gap-2 flex-wrap">
+  <a class="btn btn-brand" href="{% url 'staff_orders' %}">Все заказы</a>
+  <a class="btn btn-soft" href="{% url 'staff_stats' %}">Статистика</a>
+</div>
+{% endblock %}
+{% block staff_content %}
+<div class="kpi-grid">
+  <div class="kpi-card">
+    <div class="kpi-icon">🧾</div>
+    <div class="kpi-label">Заказов всего</div>
+    <div class="kpi-value">{{ orders_total }}</div>
+    <div class="kpi-hint">сегодня: {{ orders_today }}</div>
+  </div>
+  <div class="kpi-card amber">
+    <div class="kpi-icon">⏳</div>
+    <div class="kpi-label">В работе</div>
+    <div class="kpi-value">{{ active_count }}</div>
+    <div class="kpi-hint">готовы: {{ ready_count }}</div>
+  </div>
+  <div class="kpi-card green">
+    <div class="kpi-icon">💰</div>
+    <div class="kpi-label">Выручка всего</div>
+    <div class="kpi-value" style="font-size:22px">{{ revenue_total|rub0 }}</div>
+    <div class="kpi-hint">за 30 дней: {{ revenue_month|rub0 }}</div>
+  </div>
+  <div class="kpi-card blue">
+    <div class="kpi-icon">👥</div>
+    <div class="kpi-label">Клиенты</div>
+    <div class="kpi-value">{{ clients_count }}</div>
+    <div class="kpi-hint">средний чек: {{ avg_check|rub0 }}</div>
+  </div>
+</div>
+
+{% if ready_count %}
+  <div class="alert alert-success d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <span><strong>{{ ready_count }}</strong> заказов готовы к выдаче — сообщите клиентам.</span>
+    <a class="btn btn-sm btn-brand" href="{% url 'staff_orders' %}?status=ready">Открыть</a>
+  </div>
+{% endif %}
+
+<div class="row g-3">
+  <div class="col-lg-8">
+    <div class="panel h-100">
+      <div class="panel-head">
+        <h2>Последние заказы</h2>
+        <a class="btn btn-sm btn-soft" href="{% url 'staff_orders' %}">Все →</a>
+      </div>
+      <div class="table-scroll">
+        <table class="table-modern">
+          <thead><tr><th>Заказ</th><th>Клиент</th><th>Состав</th><th>Сумма</th><th>Статус</th><th></th></tr></thead>
+          <tbody>
+            {% for order in latest %}
+              <tr>
+                <td class="cell-strong">{{ order.number }}<div class="cell-muted">{{ order.created_at|date:"d.m H:i" }}</div></td>
+                <td>{{ order.client.full_name }}</td>
+                <td class="cell-muted">{{ order.items_count }} поз.</td>
+                <td class="cell-strong">{{ order.total|rub }}</td>
+                <td><span class="status-pill {{ order.status_class }}">{{ order.get_status_display }}</span></td>
+                <td><a class="btn btn-sm btn-soft" href="{% url 'staff_order_detail' order.pk %}">Открыть</a></td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="6"><div class="empty-state"><div class="icon">☕</div><h3>Заказов пока нет</h3><p>Как только клиент оформит заказ, он появится здесь.</p></div></td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="panel mb-3">
+      <div class="panel-head"><h2>Топ позиций</h2></div>
+      <div class="panel-body">
+        {% for row in top_products %}
+          <div class="top-row">
+            <div class="top-rank">{{ forloop.counter }}</div>
+            <div class="top-name">{{ row.name }}</div>
+            <div class="top-qty">{{ row.quantity }} шт.</div>
+          </div>
+        {% empty %}
+          <p class="help-text mb-0">Продаж пока нет.</p>
+        {% endfor %}
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><h2>Быстрые действия</h2></div>
+      <div class="panel-body d-grid gap-2">
+        <a class="btn btn-soft text-start" href="{% url 'product_create' %}">+ Добавить товар</a>
+        <a class="btn btn-soft text-start" href="{% url 'category_create' %}">+ Новая категория</a>
+        <a class="btn btn-soft text-start" href="{% url 'post_create' %}">+ Статья в блог</a>
+        <a class="btn btn-soft text-start" href="{% url 'sticker_create' %}">+ Стикер</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

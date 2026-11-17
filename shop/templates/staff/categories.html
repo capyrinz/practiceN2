@@ -1,0 +1,46 @@
+{% extends "staff/base_staff.html" %}
+{% block title %}Категории — панель «Зерно»{% endblock %}
+{% block staff_head %}
+<div>
+  <span class="eyebrow">Каталог</span>
+  <h1>Категории</h1>
+  <p>Порядок отображения и видимость разделов меню.</p>
+</div>
+<a class="btn btn-brand" href="{% url 'category_create' %}">+ Новая категория</a>
+{% endblock %}
+{% block staff_content %}
+<div class="panel">
+  <div class="table-scroll">
+    <table class="table-modern">
+      <thead><tr><th>Категория</th><th>URL</th><th>Порядок</th><th>Товаров</th><th>Статус</th><th></th></tr></thead>
+      <tbody>
+        {% for category in categories %}
+          <tr>
+            <td>
+              <div class="d-flex align-items-center gap-2">
+                <span class="thumb">{{ category.icon }}</span>
+                <div><div class="cell-strong">{{ category.name }}</div><div class="cell-muted">{{ category.description|default:"—" }}</div></div>
+              </div>
+            </td>
+            <td class="cell-muted">/menu/?category={{ category.slug }}</td>
+            <td>{{ category.sort_order }}</td>
+            <td>{{ category.products_count }}</td>
+            <td>{% if category.is_active %}<span class="status-pill status-ready">активна</span>{% else %}<span class="status-pill status-cancelled">скрыта</span>{% endif %}</td>
+            <td>
+              <div class="row-actions">
+                <a class="btn btn-sm btn-soft" href="{% url 'category_edit' category.pk %}">Изменить</a>
+                <form method="post" action="{% url 'category_toggle' category.pk %}">
+                  {% csrf_token %}
+                  <button class="btn btn-sm btn-outline-coffee" type="submit">{% if category.is_active %}Скрыть{% else %}Вернуть{% endif %}</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="6"><div class="empty-state"><div class="icon">🗂</div><h3>Категорий нет</h3><p>Создайте первый раздел меню.</p></div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

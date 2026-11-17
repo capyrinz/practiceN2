@@ -1,0 +1,15 @@
+{% if order.status == "cancelled" %}
+  <div class="stepper cancelled" aria-label="Заказ отменён">
+    {% for value, label in order.STATUS_CHOICES %}{% if value != "cancelled" %}
+      <div class="stepper-step"><div class="bar"></div>{{ label }}</div>
+    {% endif %}{% endfor %}
+  </div>
+{% else %}
+  <div class="stepper" aria-label="Этапы заказа">
+    {% for value, label in order.STATUS_CHOICES %}{% if value != "cancelled" %}
+      <div class="stepper-step {% if forloop.counter0 < order.status_index %}done{% elif forloop.counter0 == order.status_index %}current{% endif %}">
+        <div class="bar"></div>{{ label }}
+      </div>
+    {% endif %}{% endfor %}
+  </div>
+{% endif %}

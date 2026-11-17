@@ -1,0 +1,27 @@
+{% load shop_extras %}
+<article class="product-card">
+  <a class="product-media" href="{% url 'product_detail' product.slug %}" aria-label="{{ product.name }}">
+    {% if product.image %}
+      <img src="{{ product.image.url }}" alt="{{ product.name }}">
+    {% else %}
+      {{ product.category.icon }}
+    {% endif %}
+  </a>
+  <div class="product-body">
+    <span class="product-cat">{{ product.category.name }}</span>
+    <h3 class="product-title"><a href="{% url 'product_detail' product.slug %}">{{ product.name }}</a></h3>
+    <p class="product-desc">{{ product.description|default:product.composition|default:"Готовим на заказ из свежих ингредиентов." }}</p>
+    <div class="product-foot">
+      <div>
+        <div class="price">{{ product.price|rub }}</div>
+        {% if product.volume %}<span class="volume-tag">{{ product.volume }}</span>{% endif %}
+      </div>
+      <form method="post" action="{% url 'cart_add' product.pk %}">
+        {% csrf_token %}
+        <input type="hidden" name="quantity" value="1">
+        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+        <button class="btn btn-caramel btn-sm" type="submit">В корзину</button>
+      </form>
+    </div>
+  </div>
+</article>

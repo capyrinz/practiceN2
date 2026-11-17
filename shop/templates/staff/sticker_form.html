@@ -1,0 +1,26 @@
+{% extends "staff/base_staff.html" %}
+{% block title %}{% if sticker %}Редактирование стикера{% else %}Новый стикер{% endif %} — панель{% endblock %}
+{% block staff_head %}
+<div>
+  <span class="eyebrow">Стикер-студия</span>
+  <h1>{% if sticker %}Редактирование стикера{% else %}Новый стикер{% endif %}</h1>
+</div>
+{% endblock %}
+{% block staff_content %}
+<form class="form-card" method="post" novalidate style="max-width:560px">
+  {% csrf_token %}
+  {% for field in form %}
+    <div class="form-group">
+      <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} *{% endif %}</label>
+      {{ field }}
+      {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+      {{ field.errors }}
+    </div>
+  {% endfor %}
+  <div class="form-note mb-3">Для стикера используйте один эмодзи — например 🌿, ⭐, 😊 или 🐻.</div>
+  <div class="form-actions">
+    <button class="btn btn-brand" type="submit">Сохранить</button>
+    <a class="btn btn-outline-coffee" href="{% url 'staff_stickers' %}">Отмена</a>
+  </div>
+</form>
+{% endblock %}

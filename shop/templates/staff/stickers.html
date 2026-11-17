@@ -1,0 +1,40 @@
+{% extends "staff/base_staff.html" %}
+{% block title %}Стикеры — панель «Зерно»{% endblock %}
+{% block staff_head %}
+<div>
+  <span class="eyebrow">Стикер-студия</span>
+  <h1>Стикеры</h1>
+  <p>Набор стикеров, который клиенты перетаскивают на стакан.</p>
+</div>
+<a class="btn btn-brand" href="{% url 'sticker_create' %}">+ Добавить стикер</a>
+{% endblock %}
+{% block staff_content %}
+<div class="panel">
+  <div class="table-scroll">
+    <table class="table-modern">
+      <thead><tr><th>Стикер</th><th>Название</th><th>Использований</th><th>Статус</th><th></th></tr></thead>
+      <tbody>
+        {% for sticker in stickers %}
+          <tr>
+            <td style="font-size:26px">{{ sticker.symbol }}</td>
+            <td class="cell-strong">{{ sticker.name }}</td>
+            <td>{{ sticker.usages_count }}</td>
+            <td>{% if sticker.is_active %}<span class="status-pill status-ready">доступен</span>{% else %}<span class="status-pill status-cancelled">скрыт</span>{% endif %}</td>
+            <td>
+              <div class="row-actions">
+                <a class="btn btn-sm btn-soft" href="{% url 'sticker_edit' sticker.pk %}">Изменить</a>
+                <form method="post" action="{% url 'sticker_toggle' sticker.pk %}">
+                  {% csrf_token %}
+                  <button class="btn btn-sm btn-outline-coffee" type="submit">{% if sticker.is_active %}Скрыть{% else %}Вернуть{% endif %}</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="5"><div class="empty-state"><div class="icon">🎨</div><h3>Стикеров нет</h3><p>Добавьте эмодзи-стикеры для студии.</p></div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

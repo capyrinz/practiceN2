@@ -1,0 +1,58 @@
+{% extends "staff/base_staff.html" %}
+{% block title %}{% if post %}Редактирование статьи{% else %}Новая статья{% endif %} — панель{% endblock %}
+{% block staff_head %}
+<div>
+  <span class="eyebrow">Контент</span>
+  <h1>{% if post %}Редактирование статьи{% else %}Новая статья{% endif %}</h1>
+  <p>{% if post %}{{ post.title }}{% else %}Текст появится в блоге после публикации.{% endif %}</p>
+</div>
+{% endblock %}
+{% block staff_content %}
+<form class="form-card" method="post" enctype="multipart/form-data" novalidate style="max-width:820px">
+  {% csrf_token %}
+  {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+  <div class="row g-3">
+    <div class="col-md-8">
+      <div class="form-group">
+        <label class="form-label" for="{{ form.title.id_for_label }}">Заголовок *</label>
+        {{ form.title }}{{ form.title.errors }}
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="form-group">
+        <label class="form-label" for="{{ form.slug.id_for_label }}">URL-имя</label>
+        {{ form.slug }}<div class="form-text">{{ form.slug.help_text|default:"Можно оставить пустым" }}</div>{{ form.slug.errors }}
+      </div>
+    </div>
+    <div class="col-12">
+      <div class="form-group">
+        <label class="form-label" for="{{ form.excerpt.id_for_label }}">Краткое описание *</label>
+        {{ form.excerpt }}<div class="form-text">Показывается в списке статей. Минимум 20 символов.</div>{{ form.excerpt.errors }}
+      </div>
+    </div>
+    <div class="col-12">
+      <div class="form-group">
+        <label class="form-label" for="{{ form.body.id_for_label }}">Текст статьи *</label>
+        {{ form.body }}<div class="form-text">Абзацы разделяйте пустой строкой.</div>{{ form.body.errors }}
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="form-group">
+        <label class="form-label" for="{{ form.cover_image.id_for_label }}">Обложка</label>
+        {{ form.cover_image }}<div class="form-text">JPG/PNG, до 10 МБ.</div>{{ form.cover_image.errors }}
+        {% if post.cover_image %}<div class="form-text">Текущая обложка: {{ post.cover_image.name }}</div>{% endif %}
+      </div>
+    </div>
+    <div class="col-md-6 d-flex align-items-center">
+      <div class="form-check">
+        {{ form.is_published }}
+        <label class="form-check-label" for="{{ form.is_published.id_for_label }}">Опубликовать сразу</label>
+      </div>
+    </div>
+  </div>
+  <div class="form-actions">
+    <button class="btn btn-brand" type="submit">Сохранить</button>
+    <a class="btn btn-outline-coffee" href="{% url 'staff_posts' %}">Отмена</a>
+  </div>
+</form>
+{% endblock %}

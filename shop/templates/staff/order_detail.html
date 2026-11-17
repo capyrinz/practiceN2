@@ -1,0 +1,116 @@
+{% extends "staff/base_staff.html" %}
+{% load shop_extras %}
+{% block title %}Заказ {{ order.number }} — панель{% endblock %}
+{% block staff_head %}
+<div>
+  <div class="d-flex align-items-center gap-2 flex-wrap">
+    <h1>Заказ {{ order.number }}</h1>
+    <span class="status-pill {{ order.status_class }}">{{ order.get_status_display }}</span>
+  </div>
+  <p>{{ order.created_at|date:"d.m.Y в H:i" }} · {{ order.client.full_name }}{% if order.client.phone %} · {{ order.client.phone }}{% endif %}</p>
+</div>
+<div class="d-flex gap-2 flex-wrap">
+  <a class="btn btn-soft" href="{% url 'receipt_pdf' order.pk %}">⬇ Чек PDF</a>
+  <a class="btn btn-outline-coffee" href="{% url 'staff_orders' %}">← К списку</a>
+</div>
+{% endblock %}
+{% block staff_content %}
+<div class="panel mb-4"><div class="panel-body">{% include "partials/order_stepper.html" %}</div></div>
+
+<div class="row g-3">
+  <div class="col-lg-7">
+    <div class="panel mb-3">
+      <div class="panel-head"><h2>Состав заказа</h2><span class="help-text">{{ order.items_count }} поз.</span></div>
+      <div class="panel-body">
+        <table class="item-table">
+          {% for item in order.items.all %}
+            <tr>
+              <td>{{ item.name }}</td>
+              <td class="qty">×{{ item.quantity }}</td>
+              <td class="right">{{ item.total|rub }}</td>
+            </tr>
+          {% endfor %}
+          <tr><td colspan="2" class="cell-strong">Итого</td><td class="right cell-strong">{{ order.total|rub }}</td></tr>
+        </table>
+        {% if order.comment %}
+          <div class="form-note mt-3"><strong>Комментарий клиента:</strong> {{ order.comment }}</div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h2>Изменить статус</h2><span class="help-text">Клиент увидит новый статус сразу</span></div>
+      <div class="panel-body">
+        <form method="post" action="{% url 'staff_order_status' order.pk %}">
+          {% csrf_token %}
+          <div class="row g-2 align-items-end">
+            <div class="col-md-5">
+              <label class="form-label" for="{{ status_form.status.id_for_label }}">{{ status_form.status.label }}</label>
+              {{ status_form.status }}
+            </div>
+            <div class="col-md-7">
+              <label class="form-label" for="{{ status_form.comment.id_for_label }}">{{ status_form.comment.label }}</label>
+              {{ status_form.comment }}
+            </div>
+          </div>
+          <div class="form-actions">
+            <button class="btn btn-brand" type="submit">Сохранить статус</button>
+            {% if order.status == "cancelled" %}
+              <button class="btn btn-outline-coffee" type="submit" form="deleteOrder">Удалить заказ</button>
+            {% endif %}
+          </div>
+        </form>
+        <form id="deleteOrder" method="post" action="{% url 'staff_order_delete' order.pk %}" onsubmit="return confirm('Удалить заказ {{ order.number }} без возможности восстановления?')">
+          {% csrf_token %}
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-5">
+    <div class="panel mb-3">
+      <div class="panel-head"><h2>Дизайн стакана</h2><span class="badge-soft">{{ order.stickers.all|length }} стик.</span></div>
+      <div class="panel-body text-center">
+        <div class="cup-design">
+          <div class="cup-lid"></div>
+          <div class="cup-body">
+            <div class="cup-band">ЗЕРНО</div>
+            {% for placed in order.stickers.all %}
+              <span class="cup-placed" style="left: {{ placed.x }}%; top: {{ placed.y }}%; font-size: {{ placed.scale|mul:24 }}px; transform: translate(-50%, -50%) rotate({{ placed.rotation }}deg);">{{ placed.sticker.symbol }}</span>
+            {% empty %}
+              <div class="design-empty">Клиент не выбрал стикеры</div>
+            {% endfor %}
+          </div>
+        </div>
+        {% if order.stickers.all %}
+          <div class="d-flex justify-content-center gap-2 flex-wrap mt-3">
+            {% for placed in order.stickers.all %}
+              <span class="badge-soft" title="{{ placed.sticker.name }}">{{ placed.sticker.symbol }} {{ placed.sticker.name }}</span>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h2>Детали</h2></div>
+      <div class="panel-body">
+        <div class="info-grid">
+          <div class="info-item"><div class="label">Самовывоз</div><div class="value">{{ order.pickup_time|date:"d.m.Y H:i"|default:"Как можно скорее" }}</div></div>
+          <div class="info-item"><div class="label">Создан</div><div class="value">{{ order.created_at|date:"d.m.Y H:i" }}</div></div>
+          <div class="info-item"><div class="label">Выдан</div><div class="value">{{ order.completed_at|date:"d.m.Y H:i"|default:"—" }}</div></div>
+          <div class="info-item"><div class="label">Оплата</div><div class="value">На кассе</div></div>
+          <div class="info-item full">
+            <div class="label">Клиент</div>
+            <div class="value">{{ order.client.full_name }}<div class="cell-muted">{{ order.client.email|default:"e-mail не указан" }} · {{ order.client.phone|default:"телефон не указан" }}</div></div>
+          </div>
+          <div class="info-item full">
+            <div class="label">Публичная ссылка</div>
+            <div class="value" style="font-size:12px;word-break:break-all">/order/{{ order.public_token }}/</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

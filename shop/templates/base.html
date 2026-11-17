@@ -1,0 +1,111 @@
+{% load static %}
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Зерно — кофейня и обжарка{% endblock %}</title>
+  <meta name="description" content="Кофейня «Зерно»: свежая обжарка, авторские напитки, десерты и доставка до стойки. Заказ онлайн за пару минут.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☕</text></svg>">
+  <link rel="stylesheet" href="{% static 'vendor/bootstrap.min.css' %}">
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+<header class="site-header">
+  <nav class="navbar navbar-expand-lg container">
+    <a class="navbar-brand brand" href="{% url 'home' %}">
+      <span class="brand-mark">☕</span>
+      <span>ЗЕРНО<small>кофейня · обжарка</small></span>
+    </a>
+    <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav"
+            aria-controls="mainNav" aria-expanded="false" aria-label="Меню">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="mainNav">
+      <ul class="navbar-nav mx-auto mb-2 mb-lg-0">
+        <li class="nav-item"><a class="nav-link" href="{% url 'menu' %}">Меню</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'stub_kit' %}">Стикер-студия</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'blog' %}">Блог</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'home' %}#about">О кофейне</a></li>
+        {% if user.is_authenticated and user.is_admin %}
+          <li class="nav-item"><a class="nav-link" href="{% url 'staff_dashboard' %}">Панель</a></li>
+        {% endif %}
+      </ul>
+      <div class="header-actions mb-2 mb-lg-0">
+        <a class="cart-link" href="{% url 'cart' %}" aria-label="Корзина">
+          🛒 <span class="d-none d-sm-inline">Корзина</span>
+          {% if cart_count %}<span class="cart-badge">{{ cart_count }}</span>{% endif %}
+        </a>
+        {% if user.is_authenticated %}
+          <a class="user-chip" href="{% if user.is_admin %}{% url 'staff_dashboard' %}{% else %}{% url 'my_orders' %}{% endif %}">
+            <span class="user-avatar">{{ user.first_name|default:user.username|first|upper }}</span>
+            <span class="user-meta">
+              <span class="user-name">{{ user.full_name }}</span>
+              <span class="user-role">{{ user.get_role_display }}</span>
+            </span>
+          </a>
+          <form method="post" action="{% url 'logout' %}">
+            {% csrf_token %}
+            <button class="btn btn-sm btn-outline-coffee" type="submit">Выйти</button>
+          </form>
+        {% else %}
+          <a class="btn btn-sm btn-outline-coffee" href="{% url 'login' %}">Войти</a>
+          <a class="btn btn-sm btn-brand" href="{% url 'register' %}">Регистрация</a>
+        {% endif %}
+      </div>
+    </div>
+  </nav>
+</header>
+
+{% if messages %}
+  <div class="container flash-wrap">
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Закрыть"></button>
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}
+
+<main>{% block content %}{% endblock %}</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <div class="brand"><span class="brand-mark">☕</span><span>ЗЕРНО<small>кофейня · обжарка</small></span></div>
+        <p class="mt-3">Обжариваем зерно небольшими партиями и готовим напитки, которые хочется пить медленно.</p>
+      </div>
+      <div>
+        <h4>Меню</h4>
+        <a href="{% url 'menu' %}">Все позиции</a>
+        <a href="{% url 'stub_kit' %}">Стикер-студия</a>
+        <a href="{% url 'blog' %}">Блог о кофе</a>
+        <a href="{% url 'cart' %}">Корзина</a>
+      </div>
+      <div>
+        <h4>Контакты</h4>
+        <a href="tel:+74950000007">+7 (495) 000-00-07</a>
+        <a href="mailto:hello@zerno.local">hello@zerno.local</a>
+        <a href="#">Москва, ул. Кофейная, 7</a>
+      </div>
+      <div>
+        <h4>Часы работы</h4>
+        <p class="mb-1">Пн–Пт: 08:00–22:00</p>
+        <p class="mb-1">Сб–Вс: 09:00–23:00</p>
+        <p class="mb-0">Самовывоз без очереди</p>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© {% now "Y" %} Кофейня «Зерно». Учебный проект.</span>
+      <span>Сделано с любовью к кофе ☕</span>
+    </div>
+  </div>
+</footer>
+
+<script src="{% static 'vendor/bootstrap.bundle.min.js' %}"></script>
+<script src="{% static 'js/app.js' %}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

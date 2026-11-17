@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% load shop_extras %}
+{% block title %}Меню — кофейня «Зерно»{% endblock %}
+{% block content %}
+<div class="page-shell">
+  <div class="container">
+    <div class="page-head">
+      <div>
+        <span class="eyebrow">Меню</span>
+        <h1>Напитки и десерты</h1>
+        <p>{{ products_total }} позиций. Готовим на заказ, самовывоз без очереди.</p>
+      </div>
+      <a class="btn btn-soft" href="{% url 'stub_kit' %}">🎨 Собрать стакан</a>
+    </div>
+
+    <div class="filter-bar">
+      <div class="chips">
+        <a class="chip {% if not active_slug %}active{% endif %}" href="{% url 'menu' %}{% if query %}?q={{ query|urlencode }}{% endif %}">
+          Всё <span class="count">{{ products_total }}</span>
+        </a>
+        {% for category in categories %}
+          <a class="chip {% if active_slug == category.slug %}active{% endif %}"
+             href="{% url 'menu' %}?category={{ category.slug }}{% if query %}&q={{ query|urlencode }}{% endif %}">
+            {{ category.icon }} {{ category.name }}
+            <span class="count">{{ category_counts|dict_get:category.slug|default:0 }}</span>
+          </a>
+        {% endfor %}
+      </div>
+      <form class="search-box" method="get" action="{% url 'menu' %}">
+        {% if active_slug %}<input type="hidden" name="category" value="{{ active_slug }}">{% endif %}
+        <input class="form-control" type="search" name="q" value="{{ query }}" placeholder="Найти напиток или десерт…" aria-label="Поиск по меню">
+        <button class="btn btn-brand" type="submit">Найти</button>
+      </form>
+    </div>
+
+    {% if query %}
+      <p class="help-text mb-4">Результаты по запросу «{{ query }}» — найдено {{ products|length }}.</p>
+    {% endif %}
+
+    <div class="product-grid">
+      {% for product in products %}
+        {% include "partials/product_card.html" %}
+      {% empty %}
+        <div class="empty-state" style="grid-column: 1 / -1;">
+          <div class="icon">🔍</div>
+          <h3>Ничего не нашлось</h3>
+          <p>Попробуйте другой запрос или откройте всё меню.</p>
+          <a class="btn btn-soft" href="{% url 'menu' %}">Сбросить фильтры</a>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}{{ post.title }} — блог «Зерно»{% endblock %}
+{% block content %}
+<div class="page-shell">
+  <div class="container">
+    <div class="breadcrumbs"><a href="{% url 'blog' %}">Блог</a><span class="sep">/</span><span>{{ post.title }}</span></div>
+    <article class="article">
+      <span class="blog-meta">{{ post.published_at|date:"d.m.Y" }} · {{ post.reading_minutes }} мин чтения{% if post.author %} · {{ post.author.full_name }}{% endif %}</span>
+      <h1>{{ post.title }}</h1>
+      <div class="article-cover">
+        {% if post.cover_image %}<img src="{{ post.cover_image.url }}" alt="{{ post.title }}">{% else %}☕{% endif %}
+      </div>
+      <div class="article-body">
+        {{ post.body|linebreaks }}
+      </div>
+      <div class="divider"></div>
+      <div class="d-flex gap-2 flex-wrap">
+        <a class="btn btn-brand" href="{% url 'menu' %}">Открыть меню</a>
+        <a class="btn btn-soft" href="{% url 'blog' %}">Все статьи</a>
+      </div>
+    </article>
+
+    {% if others %}
+      <div class="section" style="padding-bottom: 0;">
+        <div class="section-head"><div><span class="eyebrow">Ещё почитать</span><h2 class="section-title" style="font-size:26px;">Другие статьи</h2></div></div>
+        <div class="blog-grid">
+          {% for post in others %}
+            <article class="blog-card">
+              <a class="blog-cover" href="{% url 'blog_detail' post.slug %}">{% if post.cover_image %}<img src="{{ post.cover_image.url }}" alt="{{ post.title }}">{% else %}📖{% endif %}</a>
+              <div class="blog-body">
+                <span class="blog-meta">{{ post.published_at|date:"d.m.Y" }}</span>
+                <h3><a href="{% url 'blog_detail' post.slug %}">{{ post.title }}</a></h3>
+                <p>{{ post.excerpt }}</p>
+                <a class="blog-more" href="{% url 'blog_detail' post.slug %}">Читать →</a>
+              </div>
+            </article>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

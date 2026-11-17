@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-shell">
+  <div class="container">
+    <div class="page-head">{% block staff_head %}{% endblock %}</div>
+    <div class="staff-shell">
+      <aside class="staff-nav">
+        <div class="nav-title">Управление</div>
+        <a class="{% if request.path == '/manage/' %}active{% endif %}" href="{% url 'staff_dashboard' %}"><span class="nav-icon">▦</span> Обзор</a>
+        <a class="{% if '/manage/orders/' in request.path %}active{% endif %}" href="{% url 'staff_orders' %}"><span class="nav-icon">🧾</span> Заказы</a>
+        <a class="{% if '/manage/products/' in request.path %}active{% endif %}" href="{% url 'staff_products' %}"><span class="nav-icon">☕</span> Товары</a>
+        <a class="{% if '/manage/categories/' in request.path %}active{% endif %}" href="{% url 'staff_categories' %}"><span class="nav-icon">🗂</span> Категории</a>
+        <a class="{% if '/manage/stickers/' in request.path %}active{% endif %}" href="{% url 'staff_stickers' %}"><span class="nav-icon">🎨</span> Стикеры</a>
+        <a class="{% if '/manage/posts/' in request.path %}active{% endif %}" href="{% url 'staff_posts' %}"><span class="nav-icon">📖</span> Блог</a>
+        <a class="{% if '/manage/users/' in request.path %}active{% endif %}" href="{% url 'staff_users' %}"><span class="nav-icon">👥</span> Пользователи</a>
+        <a class="{% if '/manage/stats/' in request.path %}active{% endif %}" href="{% url 'staff_stats' %}"><span class="nav-icon">📈</span> Статистика</a>
+        <div class="divider" style="margin:10px 8px"></div>
+        <a href="{% url 'home' %}"><span class="nav-icon">↗</span> На сайт</a>
+      </aside>
+      <div class="staff-content">{% block staff_content %}{% endblock %}</div>
+    </div>
+  </div>
+</div>
+{% endblock %}

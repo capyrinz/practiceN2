@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% load shop_extras %}
+{% block title %}Оформление заказа — кофейня «Зерно»{% endblock %}
+{% block content %}
+<div class="page-shell">
+  <div class="container">
+    <div class="breadcrumbs"><a href="{% url 'cart' %}">Корзина</a><span class="sep">/</span><span>Оформление</span></div>
+    <div class="page-head">
+      <div>
+        <span class="eyebrow">Последний шаг</span>
+        <h1>Оформление заказа</h1>
+        <p>Проверьте состав, укажите время самовывоза и комментарий.</p>
+      </div>
+    </div>
+
+    <div class="cart-layout">
+      <form class="form-card" method="post" novalidate>
+        {% csrf_token %}
+        <h2 style="font-size:18px;">Детали самовывоза</h2>
+        <div class="form-group">
+          <label class="form-label" for="{{ form.pickup_time.id_for_label }}">{{ form.pickup_time.label }}</label>
+          {{ form.pickup_time }}
+          <div class="form-text">{{ form.pickup_time.help_text }}</div>
+          {{ form.pickup_time.errors }}
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="{{ form.comment.id_for_label }}">{{ form.comment.label }}</label>
+          {{ form.comment }}
+          <div class="form-text">Например: без сахара, на овсяном молоке, не горячий.</div>
+          {{ form.comment.errors }}
+        </div>
+
+        <div class="form-note mb-3">
+          <strong>Получатель:</strong> {{ user.full_name }}{% if user.phone %} · {{ user.phone }}{% endif %}{% if user.email %} · {{ user.email }}{% endif %}<br>
+          Если данные устарели, обновите профиль после заказа — чек всё равно придёт в кабинет.
+        </div>
+
+        <div class="form-actions">
+          <button class="btn btn-brand btn-lg" type="submit">Подтвердить заказ</button>
+          <a class="btn btn-outline-coffee btn-lg" href="{% url 'cart' %}">Назад в корзину</a>
+        </div>
+      </form>
+
+      <aside>
+        <div class="panel mb-3">
+          <div class="panel-head"><h2>Ваш заказ</h2><span class="badge-soft">{{ count }} поз.</span></div>
+          <div class="panel-body">
+            {% for item in items %}
+              <div class="summary-line"><span>{{ item.product.name }} × {{ item.quantity }}</span><span>{{ item.total|rub }}</span></div>
+            {% endfor %}
+            <div class="summary-line total"><span>Итого</span><span>{{ total|rub }}</span></div>
+            <p class="help-text mt-2 mb-0">Оплата при получении на кассе.</p>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h3>Ваш дизайн</h3></div>
+          <div class="panel-body text-center">
+            {% include "partials/cup_design.html" %}
+            <a class="btn btn-soft btn-sm mt-3" href="{% url 'stub_kit' %}">Изменить</a>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+</div>
+{% endblock %}

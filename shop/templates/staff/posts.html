@@ -1,0 +1,43 @@
+{% extends "staff/base_staff.html" %}
+{% block title %}Блог — панель «Зерно»{% endblock %}
+{% block staff_head %}
+<div>
+  <span class="eyebrow">Контент</span>
+  <h1>Блог</h1>
+  <p>Статьи, которые видят гости на сайте.</p>
+</div>
+<a class="btn btn-brand" href="{% url 'post_create' %}">+ Новая статья</a>
+{% endblock %}
+{% block staff_content %}
+<div class="panel">
+  <div class="table-scroll">
+    <table class="table-modern">
+      <thead><tr><th>Статья</th><th>Автор</th><th>Публикация</th><th>Статус</th><th></th></tr></thead>
+      <tbody>
+        {% for post in posts %}
+          <tr>
+            <td>
+              <div class="cell-strong">{{ post.title }}</div>
+              <div class="cell-muted">{{ post.excerpt|truncatechars:80 }}</div>
+            </td>
+            <td>{{ post.author.full_name|default:"—" }}</td>
+            <td class="cell-muted">{{ post.published_at|date:"d.m.Y H:i" }}</td>
+            <td>{% if post.is_published %}<span class="status-pill status-ready">опубликована</span>{% else %}<span class="status-pill status-new">черновик</span>{% endif %}</td>
+            <td>
+              <div class="row-actions">
+                <a class="btn btn-sm btn-soft" href="{% url 'post_edit' post.pk %}">Изменить</a>
+                <form method="post" action="{% url 'post_toggle' post.pk %}">
+                  {% csrf_token %}
+                  <button class="btn btn-sm btn-outline-coffee" type="submit">{% if post.is_published %}Снять{% else %}Опубликовать{% endif %}</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="5"><div class="empty-state"><div class="icon">📖</div><h3>Статей нет</h3><p>Напишите первую статью о кофе.</p></div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
